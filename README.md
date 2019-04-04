@@ -48,7 +48,7 @@ $ docker-compose up
 ```
 
 ### To be implemented:
-threading
-db
+threading,
+db,
 unitests
 
