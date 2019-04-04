@@ -25,7 +25,7 @@ class Storage(Resource):
         # here should be insert into db pending requests
         # models.parse_request.insert().values(url=url, text=text, image=image)
         return {'message': 'inserted',
-                'data': args}
+                'data': args}, 200
 
 
 def load_page(url):
@@ -46,7 +46,7 @@ class TextParser(Resource):
         with open(scraped_text_path, 'w') as file:
             file.write(page_text)
 
-        return {'message': f'Text parsed into {scraped_text_path}'}, 201
+        return {'success': f'Text parsed into {scraped_text_path}'}, 201
 
 
 class ImageParser(Resource):
@@ -80,7 +80,7 @@ class ImageParser(Resource):
             except Exception as e:
                 print(e, image)
                 continue
-        return {'success': 'test'}, 201
+        return {'success': 'Images parsed into tmp catalogue'}, 201
 
 
 api.add_resource(TextParser, '/api/persist_text')
