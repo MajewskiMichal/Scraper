@@ -25,9 +25,9 @@ $ docker-compose up
 
 ```json
     {
-        "url": "https://en.wikipedia.org/wiki/Python",
+        "url": "https://en.wikipedia.org/wiki/Python"
 
-    },
+    }
 ```
 
 ### Scrape images
@@ -42,9 +42,9 @@ $ docker-compose up
 
 ```json
     {
-        "url": "https://en.wikipedia.org/wiki/Python",
+        "url": "https://en.wikipedia.org/wiki/Python"
 
-    },
+    }
 ```
 
 ### To be implemented:
