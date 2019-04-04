@@ -2,60 +2,61 @@ from urllib.request import urlopen
 from inscriptis import get_text
 from bs4 import BeautifulSoup
 
-from flask import Flask, request, g
-from flask_celery import make_celery
+from flask import Flask, request
 from flask_restful import Resource, Api, reqparse
 
+# from .storage import models
 
 app = Flask(__name__)
-app.config['CELERY_BROKER_URL'] = 'amqp://localhost//'
-app.config['CELERY_RESULT_BACKEND'] = 'web_scraper.db'
-celery = make_celery(app)
 
 api = Api(app)
 
 
-class AbstractParser:
+class Storage(Resource):
+    # get request for poending
+    def get(self):
+        parser = reqparse.RequestParser()
 
-    def __init__(self, url):
-        self.url = url
+        url = parser.add_argument('url', required=True)
+        text = parser.add_argument('text', required=True)
+        image = parser.add_argument('image', required=True)
 
-    def load_page(self):
-        response = urlopen(self.url)
-        page_contents = response.read().decode('utf-8')
-        return page_contents
+        args = parser.parse_args()
+        # here should be insert into db pending requests
+        # models.parse_request.insert().values(url=url, text=text, image=image)
+        return {'message': 'inserted',
+                'data': args}
+
+
+def load_page(url):
+    # get html
+    response = urlopen(url)
+    page_contents = response.read().decode('utf-8')
+    return page_contents
 
 
 class TextParser(Resource):
-
-    def get(self):
-        return {'message': 'Success', 'data': websites}, 200
-
-    def perstist_text(self):
-
+    # parse text and download file
+    def post(self):
         url = request.get_json()
-        print(url['url'])
         page_text = get_text(load_page(url['url']))
         file_name = url['url'].split('/')[2]
         scraped_text_path = '/tmp/' + file_name + '.txt'
+        # models.parse_request.insert().values(parse_request_id=parse_request_id, content=content)
         with open(scraped_text_path, 'w') as file:
             file.write(page_text)
 
-        return {'message': 'Text_scraped', 'data': args}, 201
+        return {'message': f'Text parsed into {scraped_text_path}'}, 201
 
 
 class ImageParser(Resource):
-    def get(self):
-        website = request.get_json()
-        return {'data': website}, 200
-
-    def persist_image(self):
+    # parse images and download
+    def post(self):
         url = request.get_json()
         print(url)
         soup_data = BeautifulSoup(load_page(url['url']), "html.parser")
         images = soup_data.findAll('img')
-        # id = uuid.
-        # nowy watek wspolbierzny (selery)
+        # should be Celery for asynchronous tasks
         for img in images:
             temp = img.get('src')
             if temp[0] == '/':
@@ -74,7 +75,7 @@ class ImageParser(Resource):
                 filename = nametemp
 
             try:
-                with open(f'images/{filename}.jpg', 'wb') as file:
+                with open(f'/tmp/{filename}.jpg', 'wb') as file:
                     file.write(urlopen(image).read())
             except Exception as e:
                 print(e, image)
@@ -82,7 +83,8 @@ class ImageParser(Resource):
         return {'success': 'test'}, 201
 
 
-api.add_resource(TextParser, '/api/scrape_text')
-api.add_resource(ImageParser, '/api/scrape_image')
+api.add_resource(TextParser, '/api/persist_text')
+api.add_resource(ImageParser, '/api/persist_image')
+api.add_resource(Storage, '/api/queue_request')
 
 
