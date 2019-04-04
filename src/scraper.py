@@ -23,6 +23,7 @@ class Storage(Resource):
 
         args = parser.parse_args()
         # here should be insert into db pending requests
+        # should be error handling
         # models.parse_request.insert().values(url=url, text=text, image=image)
         return {'message': 'inserted',
                 'data': args}, 200
@@ -45,6 +46,7 @@ class TextParser(Resource):
         # models.parse_request.insert().values(parse_request_id=parse_request_id, content=content)
         with open(scraped_text_path, 'w') as file:
             file.write(page_text)
+        # should be error handling
 
         return {'success': f'Text parsed into {scraped_text_path}'}, 201
 
@@ -53,7 +55,6 @@ class ImageParser(Resource):
     # parse images and download
     def post(self):
         url = request.get_json()
-        print(url)
         soup_data = BeautifulSoup(load_page(url['url']), "html.parser")
         images = soup_data.findAll('img')
         # should be Celery for asynchronous tasks
@@ -79,6 +80,7 @@ class ImageParser(Resource):
                     file.write(urlopen(image).read())
             except Exception as e:
                 print(e, image)
+                # continue  parsing website if img url failed 
                 continue
         return {'success': 'Images parsed into tmp catalogue'}, 201
 
